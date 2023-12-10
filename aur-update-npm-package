@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# update-aur-npm-package.sh
+# This script automates the process of updating Arch Linux User Repository (AUR) packages
+# that are based on npm packages. It checks for updates, downloads the new package,
+# updates the corresponding PKGBUILD, and optionally pushes the changes to the AUR.
+#
+# Requirements:
+# - Arch Linux
+# - npm (Node Package Manager) installed
+# - Git installed
+# - PKGBUILD file present in the current directory
+# - Current directory must be a Git repository
+#
+# Usage:
+# ./update-aur-npm-package.sh [--publish] [--config <config_file>]
+
+# Function to extract version from package name
+get_version() {
+  local filename=$1
+  # Extract version from filename using sed
+  echo "$filename" | sed -E 's/.*-(v?[0-9]+\.[0-9]+\.[0-9]+)\.tgz/\1/'
+}
+
+# Function to push to AUR
+push_to_aur() {
+  git add PKGBUILD .SRCINFO
+  git commit -m "Update to version ${new_version}"
+  git push origin master || { echo "Error: Git push operation failed."; exit 1; }
+}
+
+# Read configuration file if provided
+if [[ $1 == "--config" && -n $2 ]]; then
+  config_file=$2
+  shift 2
+else
+  config_file=".update-aur-npm-packages-config"
+fi
+
+# If no config file is specified, check if PKGBUILD exists in the current directory
+if [ ! -f "$config_file" ]; then
+  pkg_paths=(".")
+else
+  # Read paths from the configuration file
+  readarray -t pkg_paths < "$config_file"
+fi
+
+# Main script
+for pkg_path in "${pkg_paths[@]}"; do
+  # Check if the current directory is a Git repository
+  if [ ! -d "$pkg_path/.git" ]; then
+    echo "Error: $pkg_path is not a Git repository."
+    continue
+  fi
+
+  # Check if PKGBUILD exists
+  if [ ! -f "$pkg_path/PKGBUILD" ]; then
+    echo "Error: PKGBUILD file not found in $pkg_path."
+    continue
+  fi
+
+  # Source the PKGBUILD to get the current version and package name
+  source "$pkg_path/PKGBUILD"
+  current_version="${pkgver}"
+
+  # Check for updates
+  new_version=$(npm show "${pkgname}" version)
+
+  if [[ "${new_version}" != "${current_version}" ]]; then
+    echo "Updating ${pkgname} from ${current_version} to ${new_version}"
+
+    # Download the new package
+    npm pack "${pkgname}@${new_version}" || { echo "Failed to download the package."; exit 1; }
+
+    # Extract the new version from the downloaded package name
+    new_version=$(get_version "$(ls ${pkgname}-*.tgz)")
+
+    # Update PKGBUILD
+    awk -v new_version="${new_version}" -v pkgname="${pkgname}" \
+      '/^pkgver=/ {$0 = "pkgver=" new_version} /^pkgname=/ {$0 = "pkgname=" pkgname} 1' "$pkg_path/PKGBUILD" > "$pkg_path/PKGBUILD.tmp"
+
+    # Move the temporary file to the original PKGBUILD
+    mv "$pkg_path/PKGBUILD.tmp" "$pkg_path/PKGBUILD"
+
+    # Run updpkgsums to update sha256sums
+    updpkgsums
+
+    # Update .SRCINFO
+    makepkg --printsrcinfo > "$pkg_path/.SRCINFO"
+
+    # Push changes to AUR if --publish switch is specified
+    if [[ $1 == "--publish" ]]; then
+      push_to_aur
+    fi
+
+    echo "${pkgname} v${new_version} updated successfully."
+  else
+    echo "${pkgname} v${current_version} is already up to date."
+  fi
+done
