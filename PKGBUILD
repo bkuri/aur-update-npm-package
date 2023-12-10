@@ -16,7 +16,10 @@ package() {
     # Install the script
     install -Dm755 "${srcdir}/${pkgname}" "${pkgdir}/usr/bin/${pkgname}"
 
-    # Install systemd unit file
+    # Install systemd unit files
     install -Dm644 "${srcdir}/${pkgname}.timer" "${pkgdir}/usr/lib/systemd/user/${pkgname}.timer"
     install -Dm644 "${srcdir}/${pkgname}.service" "${pkgdir}/usr/lib/systemd/user/${pkgname}.service"
+
+    # Install configuration file
+    install -Dm644 "${srcdir}/${pkgname}.conf" "${pkgdir}${XDG_CONFIG_HOME}/${pkgname}.conf"
 }
