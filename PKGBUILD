@@ -9,7 +9,7 @@ pkgname=aur-update-npm-package
 pkgrel=1
 pkgver=1.0
 sha256sums=('SKIP')
-source=("${pkgname}-${pkgver}.tar.gz::https://github.com/bkuri/${pkgname}/releases/download/${pkgver}/${pkgname}-${pkgver}.tar.gz")
+source=("${pkgname}.tar.gz::https://github.com/bkuri/${pkgname}/releases/download/${pkgver}/${pkgname}.tar.gz")
 url="https://github.com/bkuri/${pkgname}"
 
 package() {
