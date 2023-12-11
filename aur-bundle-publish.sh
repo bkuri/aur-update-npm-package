@@ -1,14 +1,9 @@
 #!/bin/bash
 
-if [ ! -f PKGBUILD ]; then
-  echo "Error: PKGBUILD file not found."
-  exit 1
-fi
-
 source PKGBUILD
 
 # Build and package the software
-makepkg -si || { echo "Error: Failed to build and install the package."; exit 1; }
+makepkg -s || { echo "Error: Failed to build and install the package."; exit 1; }
 
 # Create a release
 curl -X POST \
