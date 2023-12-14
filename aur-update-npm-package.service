@@ -3,5 +3,5 @@ Description=Update AUR npm packages
 
 [Service]
 Type=simple
-Environment=HOME=%h
-ExecStart=/usr/bin/update-aur-npm-package --config="$XDG_CONFIG_HOME/update-aur-npm-package.conf"
+Environment=HOME=%h XDG_CONFIG_HOME=${XDG_CONFIG_HOME:=$HOME/.config}
+ExecStart=/usr/bin/aur-update-npm-package --config="$XDG_CONFIG_HOME/aur-update-npm-package.conf"
