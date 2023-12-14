@@ -12,7 +12,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Build and Publish AUR Package
-        run: ./aur-bundle-publish.sh
+        run: ./aur-build-publish.sh
         env:
           ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_OWNER: ${{ github.repository_owner }}
