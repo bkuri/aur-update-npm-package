@@ -9,6 +9,10 @@
 # Usage:
 # aur-update-npm-package [--config <config_file>] [--publish]
 
+main() {
+  # Save the current directory
+  original_dir=$(pwd)
+
 # Function to extract version from package name
 get_version() {
   # Extract version from filename using sed
@@ -82,8 +86,12 @@ for pkg_path in "${pkg_paths[@]}"; do
       push_to_aur "${pkg_path}"
     fi
 
-    echo "${pkgname} v${new_version} updated successfully."
-  else
-    echo "${pkgname} v${current_version} is already up to date."
-  fi
-done
+
+  cd "${original_dir}" || { echo "Error: Unable to revert to the original directory" >&2; exit 1; }
+}
+
+# Trap to ensure the original directory is restored even if an error occurs
+trap 'cd "${original_dir}" || { echo "Error: Unable to revert to the original directory" >&2; exit 1; }' EXIT
+
+# Call the main function
+main
