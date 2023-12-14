@@ -1,19 +1,13 @@
 #!/bin/bash
 
-# update-aur-npm-package.sh
+# aur-update-npm-package
+#
 # This script automates the process of updating Arch Linux User Repository (AUR) packages
 # that are based on npm packages. It checks for updates, downloads the new package,
 # updates the corresponding PKGBUILD, and optionally pushes the changes to the AUR.
 #
-# Requirements:
-# - Arch Linux
-# - npm (Node Package Manager) installed
-# - Git installed
-# - PKGBUILD file present in the current directory
-# - Current directory must be a Git repository
-#
 # Usage:
-# ./update-aur-npm-package.sh [--publish] [--config <config_file>]
+# aur-update-npm-package [--config <config_file>] [--publish]
 
 # Function to extract version from package name
 get_version() {
