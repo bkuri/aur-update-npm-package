@@ -29,36 +29,36 @@ if [[ "${1}" == "--config" && -n "${2}" ]]; then
 fi
 
 # If no config file is specified, check if PKGBUILD exists in the current directory
-if [ ! -f "$config_file" ]; then
+if [ ! -f "${config_file}" ]; then
   pkg_paths=(".")
 else
   # Read paths from the configuration file
-  readarray -t pkg_paths < "$config_file"
+  readarray -t pkg_paths < "${config_file}"
 fi
 
 # Main script
 for pkg_path in "${pkg_paths[@]}"; do
   # Check if the current directory is a Git repository
-  if [ ! -d "$pkg_path/.git" ]; then
-    echo "Error: $pkg_path is not a Git repository."
+  if [ ! -d "${pkg_path}/.git" ]; then
+    echo "Error: ${pkg_path} is not a Git repository."
     continue
   fi
 
   # Check if PKGBUILD exists
-  if [ ! -f "$pkg_path/PKGBUILD" ]; then
-    echo "Error: PKGBUILD file not found in $pkg_path."
+  if [ ! -f "${pkg_path}/PKGBUILD" ]; then
+    echo "Error: PKGBUILD file not found in ${pkg_path}."
     continue
   fi
 
   # Source the PKGBUILD to get the current version and package name
-  source "$pkg_path/PKGBUILD"
+  source "${pkg_path}/PKGBUILD"
   current_version="${pkgver}"
 
   # Check for updates
   new_version=$(npm show "${pkgname}" version)
 
   if [[ "${new_version}" != "${current_version}" ]]; then
-    echo "Updating ${pkgname} from ${current_version} to ${new_version}"
+    echo "Updating ${pkgname} from v${current_version} to v${new_version}"
 
     # Download the new package
     npm pack "${pkgname}@${new_version}" || { echo "Failed to download the package."; exit 1; }
@@ -77,10 +77,10 @@ for pkg_path in "${pkg_paths[@]}"; do
     updpkgsums
 
     # Update .SRCINFO
-    makepkg --printsrcinfo > "$pkg_path/.SRCINFO"
+    makepkg --printsrcinfo > "${pkg_path}/.SRCINFO"
 
     # Push changes to AUR if --publish switch is specified
-    if [[ $1 == "--publish" ]]; then
+    if [[ "${1}" == "--publish" ]]; then
       push_to_aur
     fi
 
