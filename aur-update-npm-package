@@ -87,7 +87,7 @@ main() {
 
       # Push changes to AUR if --publish switch is specified
       if [[ "${1}" == "--publish" ]]; then
-        git diff --exit-code --cached || { echo "Error: Uncommitted changes in Git repository." >&2; exit 1; }
+        git diff --exit-code --cached || { echo "Error: Uncommitted changes in git repository." >&2; exit 1; }
         git add PKGBUILD .SRCINFO
         git commit -m "v${new_version}" || { echo "Error: Git commit operation failed." >&2; exit 1; }
         git push origin master || { echo "Error: Git push operation failed." >&2; exit 1; }
