@@ -19,7 +19,7 @@ get_version() {
 # Function to push to AUR
 push_to_aur() {
   git add PKGBUILD .SRCINFO
-  git commit -m "Update to version ${new_version}"
+  git commit -m "v${new_version}"
   git push origin master || { echo "Error: Git push operation failed."; exit 1; }
 }
 
