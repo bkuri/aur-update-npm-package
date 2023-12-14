@@ -17,6 +17,8 @@ get_version() {
 
 # Function to push to AUR
 push_to_aur() {
+  local pkg_path="$1"
+  cd "${pkg_path}" || { echo "Error: Unable to change to directory ${pkg_path}"; exit 1; }
   git add PKGBUILD .SRCINFO
   git commit -m "v${new_version}"
   git push origin master || { echo "Error: Git push operation failed."; exit 1; }
@@ -64,20 +66,20 @@ for pkg_path in "${pkg_paths[@]}"; do
     npm pack "${pkgname}@${new_version}" || { echo "Failed to download the package."; exit 1; }
 
     # Extract the new version from the downloaded package name
-    new_version=$(get_version "$(ls -t ${pkgname}-*.tgz | head -n1)")
+    new_version=$(get_version "$(ls -t ${pkg_path}/${pkgname}-*.tgz | head -n1)")
 
     # Update PKGBUILD
     sed -i "s/pkgver=${current_version}/pkgver=${new_version}/" PKGBUILD
 
     # Run updpkgsums to update sha256sums
-    updpkgsums
+    updpkgsums "${pkg_path}/PKGBUILD"
 
     # Update .SRCINFO
     makepkg --printsrcinfo > "${pkg_path}/.SRCINFO"
 
     # Push changes to AUR if --publish switch is specified
     if [[ "${1}" == "--publish" ]]; then
-      push_to_aur
+      push_to_aur "${pkg_path}"
     fi
 
     echo "${pkgname} v${new_version} updated successfully."
