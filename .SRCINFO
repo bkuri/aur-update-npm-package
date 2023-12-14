@@ -1,0 +1,13 @@
+pkgbase = aur-update-npm-package
+	pkgdesc = Automates updating npm-based AUR packages
+	pkgver = 1.0.1
+	pkgrel = 1
+	url = https://github.com/bkuri/aur-update-npm-package
+	arch = any
+	license = MIT
+	depends = npm
+	optdepends = git
+	source = aur-update-npm-package-1.0.1.tar.gz::https://github.com/bkuri/aur-update-npm-package/releases/download/1.0.1/aur-update-npm-package-1.0.1.tar.gz
+	sha256sums = 2d4afba990b6b741afd2a1a4b4aeb758396ddc9d8407028890d23fd8ca94d274
+
+pkgname = aur-update-npm-package
