@@ -13,21 +13,15 @@ main() {
   # Save the current directory
   original_dir=$(pwd)
 
-# Function to extract version from package name
-get_version() {
-  # Extract version from filename using sed
-  echo "${1}" | sed -E 's/.*-(v?[0-9]+\.[0-9]+\.[0-9]+)\.tgz/\1/'
-}
+  # Function to extract version from package name
+  get_version() {
+    # Extract version from filename using sed
+    echo "${1}" | sed -E 's/.*-(v?[0-9]+\.[0-9]+\.[0-9]+)\.tgz/\1/'
+  }
 
-# Function to push to AUR
-push_to_aur() {
-  local pkg_path="$1"
-  cd "${pkg_path}" || { echo "Error: Unable to change to directory ${pkg_path}"; exit 1; }
-  git add PKGBUILD .SRCINFO
-  git commit -m "v${new_version}"
-  git push origin master || { echo "Error: Git push operation failed."; exit 1; }
-}
-
+  # Read configuration file if provided
+  if [[ "${1}" == "--config" && -n "${2}" ]]; then
+    config_file="${2}"
 
     # Check if the configuration file exists
     if [ ! -f "${config_file}" ]; then
@@ -36,59 +30,76 @@ push_to_aur() {
     fi
 
     shift 2
-
-# Check current path if no config file is specified
-if [ ! -f "${config_file}" ]; then
-  pkg_paths=(".")
-else
-  # Read paths from the configuration file
-  readarray -t pkg_paths < "${config_file}"
-fi
-
-# Main script
-for pkg_path in "${pkg_paths[@]}"; do
-  # Check if the current directory is a Git repository
-  if [ ! -d "${pkg_path}/.git" ]; then
-    echo "Error: ${pkg_path} is not a Git repository."
-    continue
   fi
 
-  # Check if PKGBUILD exists
-  if [ ! -f "${pkg_path}/PKGBUILD" ]; then
-    echo "Error: PKGBUILD file not found in ${pkg_path}."
-    continue
+  # Check current path if no config file is specified
+  if [ ! -f "${config_file}" ]; then
+    pkg_paths=(".")
+  else
+    # Read paths from the configuration file
+    readarray -t pkg_paths < "${config_file}"
   fi
 
-  # Source the PKGBUILD to get the current version and package name
-  source "${pkg_path}/PKGBUILD"
-  current_version="${pkgver}"
-
-  # Check for updates
-  new_version=$(npm show "${pkgname}" version)
-
-  if [[ "${new_version}" != "${current_version}" ]]; then
-    echo "Updating ${pkgname} from v${current_version} to v${new_version}"
-
-    # Download the new package
-    npm pack "${pkgname}@${new_version}" || { echo "Failed to download the package."; exit 1; }
-
-    # Extract the new version from the downloaded package name
-    new_version=$(get_version "$(ls -t ${pkg_path}/${pkgname}-*.tgz | head -n1)")
-
-    # Update PKGBUILD
-    sed -i "s/pkgver=${current_version}/pkgver=${new_version}/" PKGBUILD
-
-    # Run updpkgsums to update sha256sums
-    updpkgsums "${pkg_path}/PKGBUILD"
-
-    # Update .SRCINFO
-    makepkg --printsrcinfo > "${pkg_path}/.SRCINFO"
-
-    # Push changes to AUR if --publish switch is specified
-    if [[ "${1}" == "--publish" ]]; then
-      push_to_aur "${pkg_path}"
+  # Main script
+  for pkg_path in "${pkg_paths[@]}"; do
+    if [ ! -d "${pkg_path}" ]; then
+      echo "Error: Directory ${pkg_path} does not exist." >&2
+      continue
     fi
 
+    pushd "${pkg_path}" || { echo "Error: Unable to change to directory ${pkg_path}" >&2; exit 1; }
+
+    # Check if the current directory is a Git repository
+    if [ ! -d ".git" ]; then
+      echo "Error: ${pkg_path} does not contain a git repository." >&2
+      continue
+    fi
+
+    # Check if PKGBUILD exists
+    if [ ! -f "PKGBUILD" ]; then
+      echo "Error: PKGBUILD file not found inside ${pkg_path}." >&2
+      continue
+    fi
+
+    # Source the PKGBUILD to get the current version and package name
+    source "PKGBUILD"
+
+    # Check for updates
+    new_version=$(npm show "${pkgname}" version)
+
+    if [[ "${new_version}" != "${pkgver}" ]]; then
+      echo "Updating ${pkgname} from v${pkgver} to v${new_version}"
+
+      # Download the new package
+      npm pack "${pkgname}@${new_version}" > /dev/null 2>&1 || { echo "Failed to download the package." >&2; exit 1; }
+
+      # Extract the new version from the downloaded package name
+      new_version=$(get_version "$(ls -t ${pkgname}-*.tgz | head -n1)")
+
+      # Update PKGBUILD
+      sed -i "s/pkgver=${pkgver}/pkgver=${new_version}/" PKGBUILD
+
+      # Run updpkgsums to update sha256sums
+      updpkgsums
+
+      # Update .SRCINFO
+      makepkg --printsrcinfo > ".SRCINFO"
+
+      # Push changes to AUR if --publish switch is specified
+      if [[ "${1}" == "--publish" ]]; then
+        git diff --exit-code --cached || { echo "Error: Uncommitted changes in Git repository." >&2; exit 1; }
+        git add PKGBUILD .SRCINFO
+        git commit -m "v${new_version}" || { echo "Error: Git commit operation failed." >&2; exit 1; }
+        git push origin master || { echo "Error: Git push operation failed." >&2; exit 1; }
+      fi
+
+      echo "${pkgname} v${new_version} updated successfully."
+    else
+      echo "${pkgname} v${pkgver} is already up to date."
+    fi
+
+    popd || { echo "Error: Unable to revert to the original directory" >&2; exit 1; }
+  done
 
   cd "${original_dir}" || { echo "Error: Unable to revert to the original directory" >&2; exit 1; }
 }
