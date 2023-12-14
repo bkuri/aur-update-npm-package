@@ -47,7 +47,7 @@ main() {
       continue
     fi
 
-    pushd "${pkg_path}" || { echo "Error: Unable to change to directory ${pkg_path}" >&2; exit 1; }
+    pushd "${pkg_path}" > /dev/null || { echo "Error: Unable to change to directory ${pkg_path}" >&2; exit 1; }
 
     # Check if the current directory is a Git repository
     if [ ! -d ".git" ]; then
@@ -98,7 +98,7 @@ main() {
       echo "${pkgname} v${pkgver} is already up to date."
     fi
 
-    popd || { echo "Error: Unable to revert to the original directory" >&2; exit 1; }
+    popd > /dev/null || { echo "Error: Unable to revert to the original directory" >&2; exit 1; }
   done
 
   cd "${original_dir}" || { echo "Error: Unable to revert to the original directory" >&2; exit 1; }
