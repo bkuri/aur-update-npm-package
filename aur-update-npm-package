@@ -28,11 +28,14 @@ push_to_aur() {
   git push origin master || { echo "Error: Git push operation failed."; exit 1; }
 }
 
-# Read configuration file if provided
-if [[ "${1}" == "--config" && -n "${2}" ]]; then
-  config_file="${2}"
-  shift 2
-fi
+
+    # Check if the configuration file exists
+    if [ ! -f "${config_file}" ]; then
+      echo "Error: Configuration file '${config_file}' not found." >&2
+      exit 1
+    fi
+
+    shift 2
 
 # Check current path if no config file is specified
 if [ ! -f "${config_file}" ]; then
