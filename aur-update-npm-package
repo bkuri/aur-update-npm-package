@@ -28,7 +28,7 @@ if [[ "${1}" == "--config" && -n "${2}" ]]; then
   shift 2
 fi
 
-# If no config file is specified, check if PKGBUILD exists in the current directory
+# Check current path if no config file is specified
 if [ ! -f "${config_file}" ]; then
   pkg_paths=(".")
 else
