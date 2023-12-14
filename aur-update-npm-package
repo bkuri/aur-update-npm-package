@@ -23,11 +23,9 @@ push_to_aur() {
 }
 
 # Read configuration file if provided
-if [[ $1 == "--config" && -n $2 ]]; then
-  config_file=$2
+if [[ "${1}" == "--config" && -n "${2}" ]]; then
+  config_file="${2}"
   shift 2
-else
-  config_file=".update-aur-npm-packages-config"
 fi
 
 # If no config file is specified, check if PKGBUILD exists in the current directory
