@@ -100,8 +100,6 @@ main() {
 
     popd > /dev/null || { echo "Error: Unable to revert to the original directory" >&2; exit 1; }
   done
-
-  cd "${original_dir}" || { echo "Error: Unable to revert to the original directory" >&2; exit 1; }
 }
 
 # Trap to ensure the original directory is restored even if an error occurs
