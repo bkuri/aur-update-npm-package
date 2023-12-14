@@ -1,5 +1,5 @@
 [Unit]
-Description=Run update-aur-npm-package weekly
+Description=Run aur-update-npm-package weekly
 
 [Timer]
 OnCalendar=weekly
