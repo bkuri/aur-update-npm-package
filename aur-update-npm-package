@@ -64,7 +64,7 @@ for pkg_path in "${pkg_paths[@]}"; do
     npm pack "${pkgname}@${new_version}" || { echo "Failed to download the package."; exit 1; }
 
     # Extract the new version from the downloaded package name
-    new_version=$(get_version "$(ls ${pkgname}-*.tgz)")
+    new_version=$(get_version "$(ls -t ${pkgname}-*.tgz | head -n1)")
 
     # Update PKGBUILD
     awk -v new_version="${new_version}" -v pkgname="${pkgname}" \
