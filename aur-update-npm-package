@@ -67,11 +67,7 @@ for pkg_path in "${pkg_paths[@]}"; do
     new_version=$(get_version "$(ls -t ${pkgname}-*.tgz | head -n1)")
 
     # Update PKGBUILD
-    awk -v new_version="${new_version}" -v pkgname="${pkgname}" \
-      '/^pkgver=/ {$0 = "pkgver=" new_version} /^pkgname=/ {$0 = "pkgname=" pkgname} 1' "$pkg_path/PKGBUILD" > "$pkg_path/PKGBUILD.tmp"
-
-    # Move the temporary file to the original PKGBUILD
-    mv "$pkg_path/PKGBUILD.tmp" "$pkg_path/PKGBUILD"
+    sed -i "s/pkgver=${current_version}/pkgver=${new_version}/" PKGBUILD
 
     # Run updpkgsums to update sha256sums
     updpkgsums
