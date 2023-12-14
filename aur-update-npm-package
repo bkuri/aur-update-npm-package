@@ -68,7 +68,7 @@ main() {
     new_version=$(npm show "${pkgname}" version)
 
     if [[ "${new_version}" != "${pkgver}" ]]; then
-      echo "Updating ${pkgname} from v${pkgver} to v${new_version}"
+      echo "Updating package '${pkgname}' from v${pkgver} to v${new_version}"
 
       # Download the new package
       npm pack "${pkgname}@${new_version}" > /dev/null 2>&1 || { echo "Failed to download the package." >&2; exit 1; }
@@ -80,7 +80,7 @@ main() {
       sed -i "s/pkgver=${pkgver}/pkgver=${new_version}/" PKGBUILD
 
       # Run updpkgsums to update sha256sums
-      updpkgsums
+      updpkgsums > /dev/null 2>&1 || { echo "Failed to update the package checksums." >&2; exit 1; }
 
       # Update .SRCINFO
       makepkg --printsrcinfo > ".SRCINFO"
@@ -93,9 +93,9 @@ main() {
         git push origin master || { echo "Error: Git push operation failed." >&2; exit 1; }
       fi
 
-      echo "${pkgname} v${new_version} updated successfully."
+      echo "Package '${pkgname}' v${new_version} updated successfully."
     else
-      echo "${pkgname} v${pkgver} is already up to date."
+      echo "Package '${pkgname}' v${pkgver} is already up to date."
     fi
 
     popd > /dev/null || { echo "Error: Unable to revert to the original directory" >&2; exit 1; }
